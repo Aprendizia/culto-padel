@@ -71,7 +71,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
     await supabase.from('matches').delete().eq('tournament_id', tournamentId);
 
     // Insert new matches
-    const { error } = await supabase.from('matches').insert(matchRows);
+    const { error } = await supabase.from('matches').insert(matchRows as any);
     if (error) throw error;
 
     // Update tournament status

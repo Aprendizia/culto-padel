@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { TournamentCard } from '@/components/tournaments/tournament-card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useSupabase } from '@/components/providers/supabase-provider';
 import type { Tournament } from '@/types/database';
 import { Search } from 'lucide-react';
@@ -40,11 +41,11 @@ export default function PublicTournamentsPage() {
         .order('start_date', { ascending: true });
 
       if (statusFilter) {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as any);
       }
 
       if (formatFilter) {
-        query = query.eq('format', formatFilter);
+        query = query.eq('format', formatFilter as any);
       }
 
       const { data } = await query;
@@ -64,16 +65,34 @@ export default function PublicTournamentsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-zinc-100 mb-4">Torneos Públicos</h1>
-        <p className="text-lg text-zinc-400">
-          Encuentra y participa en torneos de pádel cerca de ti
+        <h1 className="text-5xl font-oswald font-bold text-cult-gold mb-4 uppercase tracking-wide">
+          Torneos del Culto
+        </h1>
+        <p className="text-lg text-cult-light">
+          Los elegidos compiten aquí. ¿Estás listo para demostrar tu devoción?
         </p>
+      </div>
+
+      {/* Filter Chips */}
+      <div className="flex flex-wrap gap-2 mb-8 justify-center">
+        <Badge variant="default" className="cursor-pointer">
+          AMERICANO
+        </Badge>
+        <Badge variant="outline" className="cursor-pointer hover:bg-cult-gold hover:text-cult-black transition-colors">
+          MIXTO
+        </Badge>
+        <Badge variant="outline" className="cursor-pointer hover:bg-cult-gold hover:text-cult-black transition-colors">
+          ESTE MES
+        </Badge>
+        <Badge variant="outline" className="cursor-pointer hover:bg-cult-gold hover:text-cult-black transition-colors">
+          ZONA NORTE
+        </Badge>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cult-light" />
           <Input
             placeholder="Buscar torneos..."
             value={search}
@@ -99,7 +118,7 @@ export default function PublicTournamentsPage() {
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 bg-zinc-800 rounded-xl animate-pulse" />
+            <div key={i} className="h-64 bg-cult-dark rounded-xl animate-pulse border border-cult-medium" />
           ))}
         </div>
       )}
@@ -108,19 +127,21 @@ export default function PublicTournamentsPage() {
       {!loading && (
         <>
           <div className="mb-6">
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-cult-light font-oswald uppercase tracking-wider">
               {filteredTournaments.length} torneo{filteredTournaments.length !== 1 ? 's' : ''} encontrado{filteredTournaments.length !== 1 ? 's' : ''}
             </p>
           </div>
 
           {filteredTournaments.length === 0 ? (
             <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 mb-4">
-                <Search className="h-8 w-8 text-zinc-400" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cult-dark mb-4">
+                <Search className="h-8 w-8 text-cult-light" />
               </div>
-              <h3 className="text-lg font-semibold text-zinc-200 mb-2">No se encontraron torneos</h3>
-              <p className="text-zinc-500">
-                Intenta ajustar los filtros o buscar algo diferente
+              <h3 className="text-lg font-oswald font-bold text-cult-cream mb-2 uppercase">
+                No se encontraron torneos
+              </h3>
+              <p className="text-cult-light">
+                La orden aún no ha programado eventos con estos criterios
               </p>
             </div>
           ) : (
@@ -129,7 +150,7 @@ export default function PublicTournamentsPage() {
                 <TournamentCard
                   key={tournament.id}
                   tournament={tournament}
-                  href={`/tournaments/${tournament.slug}`}
+                  href={`/t/${tournament.slug}`}
                 />
               ))}
             </div>

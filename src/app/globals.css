@@ -1,16 +1,70 @@
 @import "tailwindcss";
 
+@theme {
+  /* El Culto Color Palette */
+  --color-cult-black: #0A0A0A;
+  --color-cult-dark: #1A1A1A;
+  --color-cult-medium: #2A2A2A;
+  --color-cult-light: #8A8A8A;
+  --color-cult-cream: #F5F5F0;
+  --color-cult-gold: #C5A55A;
+  --color-cult-gold-light: #D4B96E;
+  --color-cult-gold-dark: #A08840;
+  
+  /* Functional colors */
+  --color-success: #4CAF50;
+  --color-warning: #FF9800;
+  --color-error: #F44336;
+  --color-live: #FF1744;
+
+  /* Font families */
+  --font-family-inter: var(--font-inter), system-ui, sans-serif;
+  --font-family-oswald: var(--font-oswald), system-ui, sans-serif;
+  --font-family-jetbrains-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Legacy zinc colors for backwards compatibility - map to cult colors */
+  --color-zinc-950: var(--color-cult-black);
+  --color-zinc-900: var(--color-cult-dark);
+  --color-zinc-800: var(--color-cult-medium);
+  --color-zinc-700: var(--color-cult-medium);
+  --color-zinc-600: var(--color-cult-light);
+  --color-zinc-500: var(--color-cult-light);
+  --color-zinc-400: var(--color-cult-light);
+  --color-zinc-300: var(--color-cult-cream);
+  --color-zinc-200: var(--color-cult-cream);
+  --color-zinc-100: var(--color-cult-cream);
+
+  /* Map emerald colors to cult gold */
+  --color-emerald-500: var(--color-cult-gold);
+  --color-emerald-600: var(--color-cult-gold-dark);
+  --color-emerald-400: var(--color-cult-gold-light);
+}
+
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  /* Background and text */
+  --background: var(--color-cult-black);
+  --foreground: var(--color-cult-cream);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family-inter);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headers use Oswald */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-oswald);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Stats and numbers use JetBrains Mono */
+.font-mono, .font-jetbrains {
+  font-family: var(--font-family-jetbrains-mono);
 }
 
 /* Scrollbar */
@@ -24,12 +78,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: var(--color-cult-medium);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: var(--color-cult-light);
 }
 
 /* Animations */
@@ -62,4 +116,29 @@ body {
 
 .slide-in-from-right-5 {
   animation: slide-in-from-right 0.3s ease-out;
+}
+
+/* Cult-specific utility classes */
+.text-cult-gold {
+  color: var(--color-cult-gold);
+}
+
+.bg-cult-gold {
+  background-color: var(--color-cult-gold);
+}
+
+.border-cult-gold {
+  border-color: var(--color-cult-gold);
+}
+
+.text-cult-cream {
+  color: var(--color-cult-cream);
+}
+
+.bg-cult-black {
+  background-color: var(--color-cult-black);
+}
+
+.bg-cult-dark {
+  background-color: var(--color-cult-dark);
 }

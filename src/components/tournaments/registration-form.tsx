@@ -22,7 +22,7 @@ export function RegistrationForm({ tournament, isLoggedIn }: RegistrationFormPro
 
   const handleRegister = async () => {
     if (!isLoggedIn) {
-      window.location.href = `/login?redirect=/tournaments/${tournament.slug}`;
+      window.location.href = `/login?redirect=/t/${tournament.slug}`;
       return;
     }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createTournamentCheckoutSession } from '@/lib/stripe/checkout';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import type { Tournament, Tenant, Plan } from '@/types/database';
 
 const checkoutSchema = z.object({
   tournamentId: z.string().uuid(),
@@ -25,32 +26,50 @@ export async function POST(req: NextRequest) {
 
     const { tournamentId, registrationId } = parsed.data;
 
-    // Fetch tournament + tenant
-    const { data: tournament } = await supabase
+    // Fetch tournament
+    const { data: tournamentData } = await supabase
       .from('tournaments')
-      .select('*, tenants!inner(*)')
+      .select('*')
       .eq('id', tournamentId)
       .single();
+
+    const tournament = tournamentData as Tournament | null;
 
     if (!tournament) {
       return NextResponse.json({ error: 'Torneo no encontrado' }, { status: 404 });
     }
 
-    const tenant = (tournament as Record<string, unknown>).tenants as Record<string, unknown>;
-    const stripeAccountId = tenant.stripe_account_id as string;
+    // Fetch tenant
+    const { data: tenantData } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', tournament.tenant_id)
+      .single();
+
+    const tenant = tenantData as Tenant | null;
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Club no encontrado' }, { status: 404 });
+    }
+
+    const stripeAccountId = tenant.stripe_account_id;
 
     if (!stripeAccountId) {
       return NextResponse.json({ error: 'El club no ha configurado pagos' }, { status: 400 });
     }
 
     // Fetch plan commission rate
-    const { data: plan } = await supabase
-      .from('plans')
-      .select('commission_rate')
-      .eq('id', tenant.plan_id as string)
-      .single();
+    let commissionRate = 0.08;
+    if (tenant.plan_id) {
+      const { data: planData } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('id', tenant.plan_id)
+        .single();
+      const plan = planData as Plan | null;
+      if (plan) commissionRate = plan.commission_rate;
+    }
 
-    const commissionRate = plan?.commission_rate ?? 0.08;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     const session = await createTournamentCheckoutSession({
@@ -63,8 +82,8 @@ export async function POST(req: NextRequest) {
       tenantId: tournament.tenant_id,
       playerEmail: user.email || '',
       playerName: user.user_metadata?.full_name || '',
-      successUrl: `${appUrl}/tournaments/${tournament.slug}?payment=success`,
-      cancelUrl: `${appUrl}/tournaments/${tournament.slug}?payment=canceled`,
+      successUrl: `${appUrl}/t/${tournament.slug}?payment=success`,
+      cancelUrl: `${appUrl}/t/${tournament.slug}?payment=canceled`,
     });
 
     return NextResponse.json({ url: session.url });

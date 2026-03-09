@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (!profile || !['tenant_owner', 'tenant_admin', 'super_admin'].includes(profile.role)) {
+    const profileData = profile as any;
+    if (!profile || !['tenant_owner', 'tenant_admin', 'super_admin'].includes(profileData.role)) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
     }
 
@@ -28,27 +29,29 @@ export async function POST(req: NextRequest) {
     const { data: tenant } = await adminClient
       .from('tenants')
       .select('*')
-      .eq('id', profile.tenant_id)
+      .eq('id', profileData.tenant_id)
       .single();
 
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 404 });
     }
 
+    const tenantData = tenant as any;
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     // If no Stripe account yet, create one
-    if (!tenant.stripe_account_id) {
+    if (!tenantData.stripe_account_id) {
       const account = await createConnectAccount(
-        tenant.name,
-        tenant.email || user.email || ''
+        tenantData.name,
+        tenantData.email || user.email || ''
       );
 
       // Save to tenant
-      await adminClient
-        .from('tenants')
+      await (adminClient
+        .from('tenants') as any)
         .update({ stripe_account_id: account.id })
-        .eq('id', tenant.id);
+        .eq('id', tenantData.id);
 
       // Generate onboarding link
       const link = await createOnboardingLink(
@@ -60,17 +63,17 @@ export async function POST(req: NextRequest) {
     }
 
     // If account exists, check status or return onboarding link
-    const status = await getAccountStatus(tenant.stripe_account_id);
+    const status = await getAccountStatus(tenantData.stripe_account_id);
 
     if (!status.detailsSubmitted) {
       const link = await createOnboardingLink(
-        tenant.stripe_account_id,
+        tenantData.stripe_account_id,
         `${appUrl}/dashboard/settings`
       );
-      return NextResponse.json({ url: link.url, accountId: tenant.stripe_account_id, status });
+      return NextResponse.json({ url: link.url, accountId: tenantData.stripe_account_id, status });
     }
 
-    return NextResponse.json({ accountId: tenant.stripe_account_id, status });
+    return NextResponse.json({ accountId: tenantData.stripe_account_id, status });
   } catch (error) {
     console.error('Connect error:', error);
     return NextResponse.json({ error: 'Error al configurar Stripe Connect' }, { status: 500 });

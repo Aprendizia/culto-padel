@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
   await supabaseAdmin.from('stripe_events').insert({
     id: event.id,
     type: event.type,
-    data: event.data.object as Record<string, unknown>,
+    data: event.data.object as unknown as Record<string, unknown>,
     processed: true,
     processed_at: new Date().toISOString(),
   });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 import { slugify } from '@/lib/utils';
+import type { TournamentStatus } from '@/types/database';
 
 const createTournamentSchema = z.object({
   name: z.string().min(3).max(100),
@@ -18,7 +19,7 @@ const createTournamentSchema = z.object({
   registrationDeadline: z.string().optional(),
   maxTeams: z.number().min(2).optional(),
   entryFee: z.number().min(0).default(0),
-  prizePoll: z.record(z.number()).optional(),
+  prizePoll: z.record(z.string(), z.number()).optional(),
   isPublic: z.boolean().default(true),
   scoringSystem: z.object({
     pointsPerMatch: z.number().default(32),
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
       .order('start_date', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (status) query = query.eq('status', status);
+    if (status) query = query.eq('status', status as TournamentStatus);
     if (isPublic === 'true') query = query.eq('is_public', true);
 
     const { data, error } = await query;
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
         scoring_system: parsed.data.scoringSystem || { points_per_match: 32, win_by: 0, sets_to_win: 0 },
         round_duration_minutes: parsed.data.roundDurationMinutes,
         status: 'draft',
-      })
+      } as any)
       .select()
       .single();
 

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Users, DollarSign, Trophy } from 'lucide-react';
+import { Calendar, Users, DollarSign, Trophy, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -33,10 +33,15 @@ interface TournamentCardProps {
 export function TournamentCard({ tournament, href }: TournamentCardProps) {
   const status = statusConfig[tournament.status];
   const Wrapper = href ? Link : 'div';
+  
+  // Calculate spots left if max_teams is set
+  const spotsLeft = tournament.max_teams 
+    ? tournament.max_teams - tournament.current_registrations 
+    : null;
 
   return (
     <Wrapper href={href || '#'} className="block group">
-      <Card className="transition-all hover:border-zinc-700 hover:shadow-lg group-hover:bg-zinc-900/80">
+      <Card className="transition-all hover:border-cult-gold hover:shadow-lg hover:shadow-cult-gold/10 group-hover:bg-cult-dark/80">
         {tournament.banner_url && (
           <div className="h-40 overflow-hidden rounded-t-xl">
             <img
@@ -48,36 +53,63 @@ export function TournamentCard({ tournament, href }: TournamentCardProps) {
         )}
         <CardContent className={tournament.banner_url ? 'pt-4' : 'pt-6'}>
           <div className="flex items-start justify-between gap-2 mb-3">
-            <h3 className="text-lg font-semibold text-zinc-100 line-clamp-1">
-              {tournament.name}
-            </h3>
-            <Badge variant={status.variant}>{status.label}</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="font-oswald uppercase tracking-wider text-xs">
+                {formatLabels[tournament.format] || tournament.format}
+              </Badge>
+              {spotsLeft !== null && spotsLeft <= 4 && (
+                <Badge variant="error" className="text-xs font-oswald uppercase">
+                  {spotsLeft} lugares
+                </Badge>
+              )}
+            </div>
+            <Badge variant={status.variant} className="font-oswald uppercase tracking-wider text-xs">
+              {status.label}
+            </Badge>
           </div>
 
-          <div className="flex items-center gap-1.5 mb-1 text-sm text-zinc-400">
-            <Trophy className="h-3.5 w-3.5" />
-            <span>{formatLabels[tournament.format] || tournament.format}</span>
+          <h3 className="text-lg font-oswald font-bold text-cult-cream mb-3 uppercase tracking-wide group-hover:text-cult-gold transition-colors line-clamp-2">
+            {tournament.name}
+          </h3>
+
+          <div className="space-y-2 mb-4">
+            {tournament.start_date && (
+              <div className="flex items-center gap-1.5 text-sm text-cult-light">
+                <Calendar className="h-3.5 w-3.5 text-cult-gold" />
+                <span>{formatDate(tournament.start_date)}</span>
+              </div>
+            )}
           </div>
 
-          {tournament.start_date && (
-            <div className="flex items-center gap-1.5 mb-1 text-sm text-zinc-400">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>{formatDate(tournament.start_date)}</span>
+          {/* Progress bar */}
+          {tournament.max_teams && (
+            <div className="mb-4">
+              <div className="flex justify-between text-xs text-cult-light mb-1 font-oswald uppercase tracking-wider">
+                <span>Inscritos</span>
+                <span>{tournament.current_registrations}/{tournament.max_teams}</span>
+              </div>
+              <div className="w-full bg-cult-medium rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full transition-all ${
+                    spotsLeft !== null && spotsLeft <= 4 ? 'bg-error' : 'bg-cult-gold'
+                  }`}
+                  style={{ width: `${(tournament.current_registrations / tournament.max_teams) * 100}%` }}
+                />
+              </div>
             </div>
           )}
 
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-800">
-            <div className="flex items-center gap-1.5 text-sm">
-              <Users className="h-3.5 w-3.5 text-zinc-500" />
-              <span className="text-zinc-300">
-                {tournament.current_registrations}
-                {tournament.max_teams && ` / ${tournament.max_teams}`}
+          <div className="flex items-center justify-between pt-3 border-t border-cult-medium">
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-cult-light" />
+              <span className="text-cult-light text-sm">
+                {tournament.current_registrations} inscritos
               </span>
             </div>
             {tournament.entry_fee > 0 && (
-              <div className="flex items-center gap-1.5 text-sm">
-                <DollarSign className="h-3.5 w-3.5 text-zinc-500" />
-                <span className="text-emerald-400 font-medium">
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="h-3.5 w-3.5 text-cult-gold" />
+                <span className="text-cult-gold font-bold font-jetbrains">
                   {formatCurrency(tournament.entry_fee)}
                 </span>
               </div>

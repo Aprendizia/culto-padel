@@ -67,8 +67,8 @@ export default function PublicTournamentPage({ params }: Props) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="space-y-6">
-          <div className="h-8 w-64 bg-zinc-800 rounded animate-pulse" />
-          <div className="h-64 bg-zinc-800 rounded-xl animate-pulse" />
+          <div className="h-8 w-64 bg-cult-dark rounded animate-pulse" />
+          <div className="h-64 bg-cult-dark rounded-xl animate-pulse" />
         </div>
       </div>
     );
@@ -78,9 +78,13 @@ export default function PublicTournamentPage({ params }: Props) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-zinc-100">Torneo no encontrado</h1>
-          <p className="text-zinc-400 mt-2">El torneo que buscas no existe o no está disponible públicamente</p>
-          <Link href="/tournaments" className="mt-4 inline-block">
+          <h1 className="text-2xl font-oswald font-bold text-cult-cream uppercase">
+            Torneo no encontrado
+          </h1>
+          <p className="text-cult-light mt-2">
+            Este evento no existe o no está disponible públicamente
+          </p>
+          <Link href="/t" className="mt-4 inline-block">
             <Button variant="outline">Ver todos los torneos</Button>
           </Link>
         </div>
@@ -89,11 +93,11 @@ export default function PublicTournamentPage({ params }: Props) {
   }
 
   const statusConfig = {
-    draft: { label: 'Borrador', variant: 'default' as const },
+    draft: { label: 'Borrador', variant: 'outline' as const },
     registration: { label: 'Inscripciones abiertas', variant: 'success' as const },
     active: { label: 'En curso', variant: 'info' as const },
     paused: { label: 'Pausado', variant: 'warning' as const },
-    completed: { label: 'Finalizado', variant: 'default' as const },
+    completed: { label: 'Finalizado', variant: 'outline' as const },
     canceled: { label: 'Cancelado', variant: 'error' as const },
   };
 
@@ -118,8 +122,8 @@ export default function PublicTournamentPage({ params }: Props) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/tournaments">
-          <Button variant="ghost" size="sm">
+        <Link href="/t">
+          <Button variant="ghost" size="sm" className="text-cult-light hover:text-cult-gold">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Todos los torneos
           </Button>
@@ -135,24 +139,26 @@ export default function PublicTournamentPage({ params }: Props) {
               alt={tournament.name}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-cult-black/80 via-cult-black/20 to-transparent" />
           </div>
         ) : (
-          <div className="h-64 md:h-80 bg-gradient-to-br from-emerald-600 to-emerald-800" />
+          <div className="h-64 md:h-80 bg-gradient-to-br from-cult-gold via-cult-gold-light to-cult-gold" />
         )}
         
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
           <div className="flex items-center gap-3 mb-2">
-            <Badge variant={status.variant} className="bg-white/20 text-white border-white/20">
+            <Badge variant={status.variant} className="bg-cult-gold/20 text-cult-gold border-cult-gold/30 font-oswald uppercase tracking-wider">
               {status.label}
             </Badge>
-            <Badge variant="outline" className="bg-white/20 text-white border-white/20">
+            <Badge variant="outline" className="bg-cult-black/20 text-cult-cream border-cult-cream/30 font-oswald uppercase tracking-wider">
               {formatLabels[tournament.format as keyof typeof formatLabels] || tournament.format}
             </Badge>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold mb-2">{tournament.name}</h1>
+          <h1 className="text-3xl md:text-5xl font-oswald font-bold mb-2 uppercase tracking-wide">
+            {tournament.name}
+          </h1>
           {tournament.description && (
-            <p className="text-lg text-white/90 max-w-2xl">{tournament.description}</p>
+            <p className="text-lg text-cult-cream/90 max-w-2xl">{tournament.description}</p>
           )}
         </div>
       </div>
@@ -163,36 +169,36 @@ export default function PublicTournamentPage({ params }: Props) {
           {/* Tournament Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-amber-400" />
+              <CardTitle className="flex items-center gap-2 font-oswald uppercase tracking-wider">
+                <Trophy className="h-5 w-5 text-cult-gold" />
                 Información del Torneo
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {tournament.start_date && (
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <Calendar className="h-4 w-4 text-zinc-500" />
+                  <div className="flex items-center gap-2 text-cult-light">
+                    <Calendar className="h-4 w-4 text-cult-gold" />
                     <span>Inicia: {formatDateTime(tournament.start_date)}</span>
                   </div>
                 )}
                 {tournament.registration_deadline && (
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <Clock className="h-4 w-4 text-zinc-500" />
+                  <div className="flex items-center gap-2 text-cult-light">
+                    <Clock className="h-4 w-4 text-cult-gold" />
                     <span>Inscripciones hasta: {formatDateTime(tournament.registration_deadline)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-zinc-300">
-                  <Users className="h-4 w-4 text-zinc-500" />
+                <div className="flex items-center gap-2 text-cult-light">
+                  <Users className="h-4 w-4 text-cult-gold" />
                   <span>
                     {tournament.current_registrations} inscritos
                     {tournament.max_teams && ` / ${tournament.max_teams} máximo`}
                   </span>
                 </div>
                 {tournament.entry_fee > 0 && (
-                  <div className="flex items-center gap-2 text-emerald-400">
+                  <div className="flex items-center gap-2 text-cult-gold">
                     <DollarSign className="h-4 w-4" />
-                    <span className="font-medium">
+                    <span className="font-bold font-jetbrains text-lg">
                       Inscripción: {formatCurrency(tournament.entry_fee)}
                     </span>
                   </div>
@@ -205,7 +211,7 @@ export default function PublicTournamentPage({ params }: Props) {
           {tournament.status === 'active' && matches.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>
+                <CardTitle className="font-oswald uppercase tracking-wider">
                   {['knockout', 'double_elimination'].includes(tournament.format) ? 'Bracket' : 'Clasificación'}
                 </CardTitle>
               </CardHeader>
@@ -214,7 +220,7 @@ export default function PublicTournamentPage({ params }: Props) {
                   <BracketView matches={matches} registrations={registrationNames} />
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-zinc-400">Los resultados se actualizan conforme avanza el torneo</p>
+                    <p className="text-cult-light">Los resultados se actualizan conforme avanza el torneo</p>
                   </div>
                 )}
               </CardContent>
@@ -225,24 +231,26 @@ export default function PublicTournamentPage({ params }: Props) {
           {registrations.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Participantes ({registrations.length})</CardTitle>
+                <CardTitle className="font-oswald uppercase tracking-wider">
+                  Los Elegidos ({registrations.length})
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {registrations.map((reg, index) => (
-                    <div key={reg.id} className="flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50">
-                      <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">
+                    <div key={reg.id} className="flex items-center gap-3 p-3 rounded-lg bg-cult-dark/50">
+                      <div className="h-8 w-8 rounded-full bg-cult-gold flex items-center justify-center text-cult-black text-sm font-bold font-jetbrains">
                         {index + 1}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-zinc-100">
+                        <p className="font-medium text-cult-cream">
                           {reg.team_name || `Equipo ${reg.id.slice(0, 8)}`}
                         </p>
                         {reg.seed && (
-                          <p className="text-sm text-zinc-400">Seed #{reg.seed}</p>
+                          <p className="text-sm text-cult-light">Seed #{reg.seed}</p>
                         )}
                       </div>
-                      <Badge variant="success" className="text-xs">
+                      <Badge variant="success" className="text-xs font-oswald uppercase">
                         Confirmado
                       </Badge>
                     </div>
@@ -261,10 +269,10 @@ export default function PublicTournamentPage({ params }: Props) {
           {tournament.rules && Object.keys(tournament.rules).length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Reglas del Torneo</CardTitle>
+                <CardTitle className="font-oswald uppercase tracking-wider">Reglas del Torneo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-sm text-zinc-300 space-y-2">
+                <div className="text-sm text-cult-light space-y-2">
                   <p>• Puntos por partido: {tournament.scoring_system?.points_per_match || 32}</p>
                   <p>• Duración por ronda: {tournament.round_duration_minutes} minutos</p>
                   {tournament.max_teams && (
@@ -279,8 +287,8 @@ export default function PublicTournamentPage({ params }: Props) {
           {tournament.prize_pool && Object.keys(tournament.prize_pool).length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-amber-400" />
+                <CardTitle className="flex items-center gap-2 font-oswald uppercase tracking-wider">
+                  <Trophy className="h-4 w-4 text-cult-gold" />
                   Premios
                 </CardTitle>
               </CardHeader>
@@ -288,8 +296,8 @@ export default function PublicTournamentPage({ params }: Props) {
                 <div className="space-y-2">
                   {Object.entries(tournament.prize_pool).map(([position, amount]) => (
                     <div key={position} className="flex justify-between">
-                      <span className="text-zinc-300 capitalize">{position} lugar:</span>
-                      <span className="font-medium text-emerald-400">
+                      <span className="text-cult-light capitalize font-oswald uppercase">{position} lugar:</span>
+                      <span className="font-bold text-cult-gold font-jetbrains">
                         {formatCurrency(amount as number)}
                       </span>
                     </div>

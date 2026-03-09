@@ -97,7 +97,7 @@ export type GenderType = 'male' | 'female' | 'mixed' | 'open';
 
 // -- TABLE INTERFACES --
 
-export interface Plan {
+export type Plan = {
   id: string;
   name: string;
   description: string | null;
@@ -126,7 +126,7 @@ export interface Plan {
   updated_at: string;
 }
 
-export interface Tenant {
+export type Tenant = {
   id: string;
   name: string;
   slug: string;
@@ -174,7 +174,7 @@ export interface Tenant {
   updated_at: string;
 }
 
-export interface Profile {
+export type Profile = {
   id: string;
   tenant_id: string;
   role: UserRole;
@@ -200,7 +200,7 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface TeamMember {
+export type TeamMember = {
   id: string;
   tenant_id: string;
   user_id: string;
@@ -212,7 +212,7 @@ export interface TeamMember {
   created_at: string;
 }
 
-export interface Court {
+export type Court = {
   id: string;
   tenant_id: string;
   name: string;
@@ -231,7 +231,7 @@ export interface Court {
   created_at: string;
 }
 
-export interface TournamentCategory {
+export type TournamentCategory = {
   id: string;
   tenant_id: string;
   name: string;
@@ -247,7 +247,7 @@ export interface TournamentCategory {
   created_at: string;
 }
 
-export interface Tournament {
+export type Tournament = {
   id: string;
   tenant_id: string;
   name: string;
@@ -285,7 +285,7 @@ export interface Tournament {
   updated_at: string;
 }
 
-export interface TournamentRegistration {
+export type TournamentRegistration = {
   id: string;
   tenant_id: string;
   tournament_id: string;
@@ -305,7 +305,7 @@ export interface TournamentRegistration {
   metadata: Record<string, unknown>;
 }
 
-export interface Match {
+export type Match = {
   id: string;
   tenant_id: string;
   tournament_id: string;
@@ -336,7 +336,7 @@ export interface Match {
   updated_at: string;
 }
 
-export interface Standing {
+export type Standing = {
   id: string;
   tenant_id: string;
   tournament_id: string;
@@ -358,7 +358,7 @@ export interface Standing {
   updated_at: string;
 }
 
-export interface Product {
+export type Product = {
   id: string;
   tenant_id: string;
   name: string;
@@ -391,7 +391,7 @@ export interface Product {
   updated_at: string;
 }
 
-export interface Order {
+export type Order = {
   id: string;
   tenant_id: string;
   order_number: number;
@@ -428,7 +428,7 @@ export interface Order {
   updated_at: string;
 }
 
-export interface Message {
+export type Message = {
   id: string;
   tenant_id: string;
   channel: MessageChannel;
@@ -449,7 +449,7 @@ export interface Message {
   created_at: string;
 }
 
-export interface Notification {
+export type Notification = {
   id: string;
   tenant_id: string;
   user_id: string;
@@ -466,7 +466,7 @@ export interface Notification {
   created_at: string;
 }
 
-export interface BroadcastCampaign {
+export type BroadcastCampaign = {
   id: string;
   tenant_id: string;
   name: string;
@@ -484,7 +484,7 @@ export interface BroadcastCampaign {
   created_at: string;
 }
 
-export interface AnalyticsEvent {
+export type AnalyticsEvent = {
   id: string;
   tenant_id: string;
   user_id: string | null;
@@ -498,7 +498,7 @@ export interface AnalyticsEvent {
   created_at: string;
 }
 
-export interface AiInteraction {
+export type AiInteraction = {
   id: string;
   tenant_id: string | null;
   user_id: string | null;
@@ -516,7 +516,7 @@ export interface AiInteraction {
   created_at: string;
 }
 
-export interface StripeEvent {
+export type StripeEvent = {
   id: string;
   tenant_id: string | null;
   type: string;
@@ -529,28 +529,36 @@ export interface StripeEvent {
 
 // -- SUPABASE DATABASE TYPE --
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      plans: { Row: Plan; Insert: Partial<Plan> & Pick<Plan, 'name'>; Update: Partial<Plan> };
-      tenants: { Row: Tenant; Insert: Partial<Tenant> & Pick<Tenant, 'name' | 'slug'>; Update: Partial<Tenant> };
-      profiles: { Row: Profile; Insert: Partial<Profile> & Pick<Profile, 'id' | 'tenant_id'>; Update: Partial<Profile> };
-      team_members: { Row: TeamMember; Insert: Partial<TeamMember> & Pick<TeamMember, 'tenant_id' | 'user_id'>; Update: Partial<TeamMember> };
-      courts: { Row: Court; Insert: Partial<Court> & Pick<Court, 'tenant_id' | 'name'>; Update: Partial<Court> };
-      tournament_categories: { Row: TournamentCategory; Insert: Partial<TournamentCategory> & Pick<TournamentCategory, 'tenant_id' | 'name' | 'slug'>; Update: Partial<TournamentCategory> };
-      tournaments: { Row: Tournament; Insert: Partial<Tournament> & Pick<Tournament, 'tenant_id' | 'name' | 'slug' | 'format'>; Update: Partial<Tournament> };
-      tournament_registrations: { Row: TournamentRegistration; Insert: Partial<TournamentRegistration> & Pick<TournamentRegistration, 'tenant_id' | 'tournament_id' | 'player_1_id'>; Update: Partial<TournamentRegistration> };
-      matches: { Row: Match; Insert: Partial<Match> & Pick<Match, 'tenant_id' | 'tournament_id' | 'round' | 'match_number'>; Update: Partial<Match> };
-      standings: { Row: Standing; Insert: Partial<Standing> & Pick<Standing, 'tenant_id' | 'tournament_id'>; Update: Partial<Standing> };
-      products: { Row: Product; Insert: Partial<Product> & Pick<Product, 'tenant_id' | 'name' | 'slug' | 'price'>; Update: Partial<Product> };
-      orders: { Row: Order; Insert: Partial<Order> & Pick<Order, 'tenant_id' | 'customer_id'>; Update: Partial<Order> };
-      messages: { Row: Message; Insert: Partial<Message> & Pick<Message, 'tenant_id' | 'channel' | 'direction'>; Update: Partial<Message> };
-      notifications: { Row: Notification; Insert: Partial<Notification> & Pick<Notification, 'tenant_id' | 'user_id' | 'type' | 'title' | 'body'>; Update: Partial<Notification> };
-      broadcast_campaigns: { Row: BroadcastCampaign; Insert: Partial<BroadcastCampaign> & Pick<BroadcastCampaign, 'tenant_id' | 'name' | 'channel' | 'content'>; Update: Partial<BroadcastCampaign> };
-      analytics_events: { Row: AnalyticsEvent; Insert: Partial<AnalyticsEvent> & Pick<AnalyticsEvent, 'tenant_id' | 'event_type'>; Update: Partial<AnalyticsEvent> };
-      ai_interactions: { Row: AiInteraction; Insert: Partial<AiInteraction> & Pick<AiInteraction, 'agent' | 'model'>; Update: Partial<AiInteraction> };
-      stripe_events: { Row: StripeEvent; Insert: Partial<StripeEvent> & Pick<StripeEvent, 'id' | 'type' | 'data'>; Update: Partial<StripeEvent> };
+      plans: { Row: Plan; Insert: Partial<Plan> & Pick<Plan, 'name'>; Update: Partial<Plan>; Relationships: [] };
+      tenants: { Row: Tenant; Insert: Partial<Tenant> & Pick<Tenant, 'name' | 'slug'>; Update: Partial<Tenant>; Relationships: [] };
+      profiles: { Row: Profile; Insert: Partial<Profile> & Pick<Profile, 'id' | 'tenant_id'>; Update: Partial<Profile>; Relationships: [] };
+      team_members: { Row: TeamMember; Insert: Partial<TeamMember> & Pick<TeamMember, 'tenant_id' | 'user_id'>; Update: Partial<TeamMember>; Relationships: [] };
+      courts: { Row: Court; Insert: Partial<Court> & Pick<Court, 'tenant_id' | 'name'>; Update: Partial<Court>; Relationships: [] };
+      tournament_categories: { Row: TournamentCategory; Insert: Partial<TournamentCategory> & Pick<TournamentCategory, 'tenant_id' | 'name' | 'slug'>; Update: Partial<TournamentCategory>; Relationships: [] };
+      tournaments: { Row: Tournament; Insert: Partial<Tournament> & Pick<Tournament, 'tenant_id' | 'name' | 'slug' | 'format'>; Update: Partial<Tournament>; Relationships: [] };
+      tournament_registrations: { Row: TournamentRegistration; Insert: Partial<TournamentRegistration> & Pick<TournamentRegistration, 'tenant_id' | 'tournament_id' | 'player_1_id'>; Update: Partial<TournamentRegistration>; Relationships: [] };
+      matches: { Row: Match; Insert: Partial<Match> & Pick<Match, 'tenant_id' | 'tournament_id' | 'round' | 'match_number'>; Update: Partial<Match>; Relationships: [] };
+      standings: { Row: Standing; Insert: Partial<Standing> & Pick<Standing, 'tenant_id' | 'tournament_id'>; Update: Partial<Standing>; Relationships: [] };
+      products: { Row: Product; Insert: Partial<Product> & Pick<Product, 'tenant_id' | 'name' | 'slug' | 'price'>; Update: Partial<Product>; Relationships: [] };
+      orders: { Row: Order; Insert: Partial<Order> & Pick<Order, 'tenant_id' | 'customer_id'>; Update: Partial<Order>; Relationships: [] };
+      messages: { Row: Message; Insert: Partial<Message> & Pick<Message, 'tenant_id' | 'channel' | 'direction'>; Update: Partial<Message>; Relationships: [] };
+      notifications: { Row: Notification; Insert: Partial<Notification> & Pick<Notification, 'tenant_id' | 'user_id' | 'type' | 'title' | 'body'>; Update: Partial<Notification>; Relationships: [] };
+      broadcast_campaigns: { Row: BroadcastCampaign; Insert: Partial<BroadcastCampaign> & Pick<BroadcastCampaign, 'tenant_id' | 'name' | 'channel' | 'content'>; Update: Partial<BroadcastCampaign>; Relationships: [] };
+      analytics_events: { Row: AnalyticsEvent; Insert: Partial<AnalyticsEvent> & Pick<AnalyticsEvent, 'tenant_id' | 'event_type'>; Update: Partial<AnalyticsEvent>; Relationships: [] };
+      ai_interactions: { Row: AiInteraction; Insert: Partial<AiInteraction> & Pick<AiInteraction, 'agent' | 'model'>; Update: Partial<AiInteraction>; Relationships: [] };
+      stripe_events: { Row: StripeEvent; Insert: Partial<StripeEvent> & Pick<StripeEvent, 'id' | 'type' | 'data'>; Update: Partial<StripeEvent>; Relationships: [] };
     };
+    Views: Record<string, {
+      Row: Record<string, unknown>;
+      Relationships: [];
+    }>;
+    Functions: Record<string, {
+      Args: Record<string, unknown>;
+      Returns: unknown;
+    }>;
     Enums: {
       subscription_status: SubscriptionStatus;
       user_role: UserRole;

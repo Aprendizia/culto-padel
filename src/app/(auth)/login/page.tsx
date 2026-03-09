@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/components/ui/toast';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/dashboard';
@@ -61,13 +61,21 @@ export default function LoginPage() {
             Iniciar sesión
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-zinc-400">
+        <p className="mt-4 text-center text-sm text-cult-light">
           ¿No tienes cuenta?{' '}
-          <Link href="/register" className="text-emerald-400 hover:underline">
+          <Link href="/register" className="text-cult-gold hover:underline">
             Regístrate
           </Link>
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="h-64 animate-pulse bg-cult-dark rounded-xl" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

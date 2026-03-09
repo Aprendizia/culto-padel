@@ -15,7 +15,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="space-y-1.5">
         {label && (
-          <label htmlFor={selectId} className="text-sm font-medium text-zinc-300">
+          <label htmlFor={selectId} className="text-sm font-medium text-cult-cream">
             {label}
           </label>
         )}
@@ -24,8 +24,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             ref={ref}
             className={cn(
-              'flex h-10 w-full appearance-none rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 pr-8 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50',
-              error && 'border-red-500',
+              'flex h-10 w-full appearance-none rounded-lg border border-cult-medium bg-cult-dark px-3 py-2 pr-8 text-sm text-cult-cream focus:border-cult-gold focus:outline-none focus:ring-1 focus:ring-cult-gold disabled:cursor-not-allowed disabled:opacity-50',
+              error && 'border-error',
               className
             )}
             {...props}
@@ -41,7 +41,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-5 w-5 text-zinc-500" />
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-5 w-5 text-cult-light" />
         </div>
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>

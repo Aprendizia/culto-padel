@@ -32,7 +32,7 @@ export function Sidebar() {
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-40 rounded-lg bg-zinc-900 p-2 text-zinc-400 lg:hidden"
+        className="fixed top-4 left-4 z-40 rounded-lg bg-cult-dark p-2 text-cult-light hover:text-cult-gold lg:hidden"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -48,19 +48,19 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-zinc-950 border-r border-zinc-800 transition-transform lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-cult-black border-r border-cult-medium transition-transform lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between px-6 border-b border-zinc-800">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-              <Trophy className="h-4 w-4 text-white" />
+        <div className="flex h-16 items-center justify-between px-6 border-b border-cult-medium">
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-cult-gold flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-cult-black" />
             </div>
-            <span className="text-lg font-bold text-white">Culto Pádel</span>
+            <span className="text-lg font-oswald font-bold text-cult-gold uppercase tracking-wide">Culto Pádel</span>
           </Link>
-          <button onClick={() => setMobileOpen(false)} className="lg:hidden text-zinc-500">
+          <button onClick={() => setMobileOpen(false)} className="lg:hidden text-cult-light hover:text-cult-gold">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -75,10 +75,10 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors font-oswald uppercase tracking-wider',
                   isActive
-                    ? 'bg-emerald-500/10 text-emerald-400'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
+                    ? 'bg-cult-gold/10 text-cult-gold'
+                    : 'text-cult-light hover:bg-cult-dark hover:text-cult-cream'
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -89,8 +89,8 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-zinc-800 p-3">
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors">
+        <div className="border-t border-cult-medium p-3">
+          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cult-light hover:bg-cult-dark hover:text-cult-cream transition-colors font-oswald uppercase tracking-wider">
             <LogOut className="h-5 w-5" />
             Cerrar sesión
           </button>
