@@ -13,15 +13,15 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 import { toast } from '@/components/ui/toast';
 import Link from 'next/link';
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ tournamentId: string }> };
 
 export default function TournamentDetailPage({ params }: Props) {
-  const { id } = use(params);
-  const { tournament, matches, registrations, loading } = useTournament(id);
+  const { tournamentId } = use(params);
+  const { tournament, matches, registrations, loading } = useTournament(tournamentId);
 
   const generateBracket = async () => {
     try {
-      const res = await fetch(`/api/tournaments/${id}/bracket`, { method: 'POST' });
+      const res = await fetch(`/api/tournaments/${tournamentId}/bracket`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);

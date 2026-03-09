@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-type RouteContext = { params: Promise<{ id: string }> };
+type RouteContext = { params: Promise<{ tournamentId: string }> };
 
-// GET /api/tournaments/[id]
+// GET /api/tournaments/[tournamentId]
 export async function GET(req: NextRequest, context: RouteContext) {
   try {
-    const { id } = await context.params;
+    const { tournamentId } = await context.params;
     const supabase = await createClient();
 
     const { data: tournament, error } = await supabase
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
           player_1_id, player_2_id, registered_at
         )
       `)
-      .eq('id', id)
+      .eq('id', tournamentId)
       .single();
 
     if (error || !tournament) {
@@ -33,10 +33,10 @@ export async function GET(req: NextRequest, context: RouteContext) {
   }
 }
 
-// PATCH /api/tournaments/[id]
+// PATCH /api/tournaments/[tournamentId]
 export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
-    const { id } = await context.params;
+    const { tournamentId } = await context.params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     const { data: tournament, error } = await supabase
       .from('tournaments')
       .update(body)
-      .eq('id', id)
+      .eq('id', tournamentId)
       .select()
       .single();
 
@@ -61,10 +61,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
 }
 
-// DELETE /api/tournaments/[id]
+// DELETE /api/tournaments/[tournamentId]
 export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
-    const { id } = await context.params;
+    const { tournamentId } = await context.params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -75,7 +75,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     const { error } = await supabase
       .from('tournaments')
       .delete()
-      .eq('id', id);
+      .eq('id', tournamentId);
 
     if (error) throw error;
     return NextResponse.json({ success: true });

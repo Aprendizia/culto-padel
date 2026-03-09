@@ -3,11 +3,11 @@ import { createClient } from '@/lib/supabase/server';
 import { generateKnockoutBracket, bracketMatchesToDbRows } from '@/lib/tournaments/bracket-generator';
 import { generateAmericanoSchedule, americanoMatchesToDbRows } from '@/lib/tournaments/americano';
 
-type RouteContext = { params: Promise<{ id: string }> };
+type RouteContext = { params: Promise<{ tournamentId: string }> };
 
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
-    const { id: tournamentId } = await context.params;
+    const { tournamentId } = await context.params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
