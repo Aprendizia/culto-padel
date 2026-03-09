@@ -29,6 +29,7 @@ export default function NewTournamentPage() {
     entryFee: 0,
     maxTeams: '',
     startDate: '',
+    endDate: '',
     registrationDeadline: '',
     isPublic: true,
   });
@@ -48,6 +49,7 @@ export default function NewTournamentPage() {
           entryFee: form.entryFee,
           maxTeams: form.maxTeams ? parseInt(form.maxTeams) : undefined,
           startDate: form.startDate || undefined,
+          endDate: form.endDate || undefined,
           registrationDeadline: form.registrationDeadline || undefined,
           isPublic: form.isPublic,
         }),
@@ -73,20 +75,20 @@ export default function NewTournamentPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/dashboard/tournaments">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="text-cult-light hover:text-cult-gold font-oswald uppercase tracking-wide">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-zinc-100">Nuevo Torneo</h1>
-          <p className="text-zinc-400 mt-1">Crea un nuevo torneo para tu club</p>
+          <h1 className="text-3xl font-oswald font-bold text-cult-cream uppercase tracking-wide">Nuevo Torneo</h1>
+          <p className="text-cult-light mt-1">Crea un nuevo torneo para tu club</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Información del Torneo</CardTitle>
+          <CardTitle className="font-oswald uppercase tracking-wider text-cult-cream">Información del Torneo</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,12 +110,18 @@ export default function NewTournamentPage() {
               />
             </div>
 
-            <Input
-              label="Descripción"
-              placeholder="Describe tu torneo..."
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
+            <div>
+              <label className="block text-sm font-medium text-cult-light mb-1.5 font-oswald uppercase tracking-wider">
+                Descripción
+              </label>
+              <textarea
+                placeholder="Describe tu torneo..."
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                className="w-full rounded-lg border border-cult-medium bg-cult-dark px-3 py-2 text-sm text-cult-cream placeholder:text-cult-light/50 focus:border-cult-gold focus:outline-none focus:ring-1 focus:ring-cult-gold"
+              />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
@@ -140,12 +148,20 @@ export default function NewTournamentPage() {
               />
             </div>
 
-            <Input
-              label="Fecha límite de inscripción"
-              type="datetime-local"
-              value={form.registrationDeadline}
-              onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Fecha de fin"
+                type="datetime-local"
+                value={form.endDate}
+                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+              />
+              <Input
+                label="Deadline de inscripción"
+                type="datetime-local"
+                value={form.registrationDeadline}
+                onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })}
+              />
+            </div>
 
             <div className="flex items-center gap-2">
               <input
@@ -153,19 +169,24 @@ export default function NewTournamentPage() {
                 id="isPublic"
                 checked={form.isPublic}
                 onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-                className="rounded border-zinc-700"
+                className="rounded border-cult-medium bg-cult-dark text-cult-gold focus:ring-cult-gold"
               />
-              <label htmlFor="isPublic" className="text-sm text-zinc-300">
+              <label htmlFor="isPublic" className="text-sm text-cult-light">
                 Torneo público (visible para jugadores)
               </label>
             </div>
 
             <div className="flex gap-3">
-              <Button type="submit" variant="primary" loading={loading}>
-                Crear Torneo
+              <Button
+                type="submit"
+                variant="primary"
+                className="bg-cult-gold text-cult-black hover:bg-cult-gold-light font-oswald font-bold tracking-wide uppercase"
+                disabled={loading}
+              >
+                {loading ? 'Creando...' : 'Crear Torneo'}
               </Button>
               <Link href="/dashboard/tournaments">
-                <Button variant="outline">Cancelar</Button>
+                <Button variant="outline" className="font-oswald uppercase tracking-wide">Cancelar</Button>
               </Link>
             </div>
           </form>

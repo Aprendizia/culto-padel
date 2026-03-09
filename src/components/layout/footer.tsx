@@ -1,7 +1,13 @@
 import Link from 'next/link';
 import { Trophy } from 'lucide-react';
 
-export function Footer() {
+interface FooterProps {
+  tenantName?: string | null;
+}
+
+export function Footer({ tenantName }: FooterProps) {
+  const displayName = tenantName || 'CULTO PÁDEL';
+
   return (
     <footer className="border-t border-cult-medium bg-cult-black">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -11,21 +17,21 @@ export function Footer() {
               <Trophy className="h-3 w-3 text-cult-black" />
             </div>
             <span className="text-lg font-oswald font-bold text-cult-gold uppercase tracking-wide">
-              CULTO PÁDEL
+              {displayName}
             </span>
           </div>
 
           <div className="flex gap-6">
-            <Link href="/t" className="text-sm text-cult-light hover:text-cult-gold transition-colors uppercase tracking-wide">
+            <Link href="/t" className="text-sm text-cult-light hover:text-cult-gold transition-colors uppercase tracking-wide font-oswald">
               Torneos
             </Link>
-            <Link href="/login" className="text-sm text-cult-light hover:text-cult-gold transition-colors uppercase tracking-wide">
-              Iniciar sesión
+            <Link href="/login" className="text-sm text-cult-light hover:text-cult-gold transition-colors uppercase tracking-wide font-oswald">
+              Iniciar Sesión
             </Link>
           </div>
 
           <p className="text-xs text-cult-light font-oswald uppercase tracking-wider">
-            © {new Date().getFullYear()} CULTO PÁDEL — Una orden secreta del pádel
+            © {new Date().getFullYear()} {displayName} — Powered by Culto Pádel
           </p>
         </div>
       </div>

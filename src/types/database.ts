@@ -1,5 +1,5 @@
 // ============================================================
-// TypeScript types matching the Culto Pádel SQL schema
+// TypeScript types matching the Culto Pádel V2 multi-tenant schema
 // Auto-maintained — keep in sync with supabase/migrations/
 // ============================================================
 
@@ -97,6 +97,80 @@ export type GenderType = 'male' | 'female' | 'mixed' | 'open';
 
 // -- TABLE INTERFACES --
 
+/**
+ * Global user record (public.users table).
+ * Replaces the old `profiles` table — tenant-specific data lives in TenantMembership.
+ */
+export interface User {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null; // generated
+  avatar_url: string | null;
+  date_of_birth: string | null;
+  gender: GenderType | null;
+  preferred_hand: 'right' | 'left' | null;
+  preferred_side: 'drive' | 'reves' | null;
+  bio: string | null;
+  is_active: boolean;
+  stripe_customer_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** @deprecated Use `User` instead. Kept for backward compatibility. */
+export type Profile = User;
+
+/**
+ * Per-tenant membership record (public.tenant_memberships table).
+ * Contains role, level, ranking, and tenant-specific metadata.
+ */
+export interface TenantMembership {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  role: UserRole;
+  player_level: PlayerLevel | null;
+  ranking_points: number;
+  whatsapp_opted_in: boolean;
+  permissions: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  is_active: boolean;
+  joined_at: string;
+}
+
+/**
+ * Resolved tenant configuration (from resolve_tenant RPC).
+ * Used by TenantProvider for client-side context.
+ */
+export interface TenantConfig {
+  id: string;
+  name: string;
+  slug: string;
+  custom_domain: string | null;
+  logo_url: string | null;
+  favicon_url: string | null;
+  brand_colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
+  settings: {
+    timezone: string;
+    currency: string;
+    locale: string;
+    default_points_per_match: number;
+    default_match_duration_minutes: number;
+  };
+  features: Record<string, boolean>;
+  plan_name: string | null;
+  stripe_onboarding_complete: boolean;
+  is_active: boolean;
+}
+
 export type Plan = {
   id: string;
   name: string;
@@ -170,32 +244,6 @@ export type Tenant = {
     lng?: number;
   } | null;
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export type Profile = {
-  id: string;
-  tenant_id: string;
-  role: UserRole;
-  first_name: string | null;
-  last_name: string | null;
-  display_name: string;
-  email: string | null;
-  phone: string | null;
-  whatsapp_opted_in: boolean;
-  avatar_url: string | null;
-  player_level: PlayerLevel | null;
-  ranking_points: number;
-  gender: GenderType | null;
-  date_of_birth: string | null;
-  stripe_customer_id: string | null;
-  preferred_hand: 'right' | 'left' | null;
-  preferred_side: 'drive' | 'reves' | null;
-  bio: string | null;
-  metadata: Record<string, unknown>;
-  is_active: boolean;
-  last_seen_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -289,6 +337,7 @@ export type TournamentRegistration = {
   id: string;
   tenant_id: string;
   tournament_id: string;
+  order_id: string | null;
   player_1_id: string;
   player_2_id: string | null;
   team_name: string | null;
@@ -532,33 +581,40 @@ export type StripeEvent = {
 export type Database = {
   public: {
     Tables: {
-      plans: { Row: Plan; Insert: Partial<Plan> & Pick<Plan, 'name'>; Update: Partial<Plan>; Relationships: [] };
-      tenants: { Row: Tenant; Insert: Partial<Tenant> & Pick<Tenant, 'name' | 'slug'>; Update: Partial<Tenant>; Relationships: [] };
-      profiles: { Row: Profile; Insert: Partial<Profile> & Pick<Profile, 'id' | 'tenant_id'>; Update: Partial<Profile>; Relationships: [] };
-      team_members: { Row: TeamMember; Insert: Partial<TeamMember> & Pick<TeamMember, 'tenant_id' | 'user_id'>; Update: Partial<TeamMember>; Relationships: [] };
-      courts: { Row: Court; Insert: Partial<Court> & Pick<Court, 'tenant_id' | 'name'>; Update: Partial<Court>; Relationships: [] };
-      tournament_categories: { Row: TournamentCategory; Insert: Partial<TournamentCategory> & Pick<TournamentCategory, 'tenant_id' | 'name' | 'slug'>; Update: Partial<TournamentCategory>; Relationships: [] };
-      tournaments: { Row: Tournament; Insert: Partial<Tournament> & Pick<Tournament, 'tenant_id' | 'name' | 'slug' | 'format'>; Update: Partial<Tournament>; Relationships: [] };
-      tournament_registrations: { Row: TournamentRegistration; Insert: Partial<TournamentRegistration> & Pick<TournamentRegistration, 'tenant_id' | 'tournament_id' | 'player_1_id'>; Update: Partial<TournamentRegistration>; Relationships: [] };
-      matches: { Row: Match; Insert: Partial<Match> & Pick<Match, 'tenant_id' | 'tournament_id' | 'round' | 'match_number'>; Update: Partial<Match>; Relationships: [] };
-      standings: { Row: Standing; Insert: Partial<Standing> & Pick<Standing, 'tenant_id' | 'tournament_id'>; Update: Partial<Standing>; Relationships: [] };
-      products: { Row: Product; Insert: Partial<Product> & Pick<Product, 'tenant_id' | 'name' | 'slug' | 'price'>; Update: Partial<Product>; Relationships: [] };
-      orders: { Row: Order; Insert: Partial<Order> & Pick<Order, 'tenant_id' | 'customer_id'>; Update: Partial<Order>; Relationships: [] };
-      messages: { Row: Message; Insert: Partial<Message> & Pick<Message, 'tenant_id' | 'channel' | 'direction'>; Update: Partial<Message>; Relationships: [] };
-      notifications: { Row: Notification; Insert: Partial<Notification> & Pick<Notification, 'tenant_id' | 'user_id' | 'type' | 'title' | 'body'>; Update: Partial<Notification>; Relationships: [] };
-      broadcast_campaigns: { Row: BroadcastCampaign; Insert: Partial<BroadcastCampaign> & Pick<BroadcastCampaign, 'tenant_id' | 'name' | 'channel' | 'content'>; Update: Partial<BroadcastCampaign>; Relationships: [] };
-      analytics_events: { Row: AnalyticsEvent; Insert: Partial<AnalyticsEvent> & Pick<AnalyticsEvent, 'tenant_id' | 'event_type'>; Update: Partial<AnalyticsEvent>; Relationships: [] };
-      ai_interactions: { Row: AiInteraction; Insert: Partial<AiInteraction> & Pick<AiInteraction, 'agent' | 'model'>; Update: Partial<AiInteraction>; Relationships: [] };
-      stripe_events: { Row: StripeEvent; Insert: Partial<StripeEvent> & Pick<StripeEvent, 'id' | 'type' | 'data'>; Update: Partial<StripeEvent>; Relationships: [] };
+      plans: { Row: Plan; Insert: Partial<Plan> & Pick<Plan, 'name'>; Update: Partial<Plan>; Relationships: never[] };
+      tenants: { Row: Tenant; Insert: Partial<Tenant> & Pick<Tenant, 'name' | 'slug'>; Update: Partial<Tenant>; Relationships: never[] };
+      users: { Row: User; Insert: Partial<User> & Pick<User, 'id'>; Update: Partial<User>; Relationships: never[] };
+      tenant_memberships: { Row: TenantMembership; Insert: Partial<TenantMembership> & Pick<TenantMembership, 'tenant_id' | 'user_id'>; Update: Partial<TenantMembership>; Relationships: never[] };
+      team_members: { Row: TeamMember; Insert: Partial<TeamMember> & Pick<TeamMember, 'tenant_id' | 'user_id'>; Update: Partial<TeamMember>; Relationships: never[] };
+      courts: { Row: Court; Insert: Partial<Court> & Pick<Court, 'tenant_id' | 'name'>; Update: Partial<Court>; Relationships: never[] };
+      tournament_categories: { Row: TournamentCategory; Insert: Partial<TournamentCategory> & Pick<TournamentCategory, 'tenant_id' | 'name' | 'slug'>; Update: Partial<TournamentCategory>; Relationships: never[] };
+      tournaments: { Row: Tournament; Insert: Partial<Tournament> & Pick<Tournament, 'tenant_id' | 'name' | 'slug' | 'format'>; Update: Partial<Tournament>; Relationships: never[] };
+      tournament_registrations: { Row: TournamentRegistration; Insert: Partial<TournamentRegistration> & Pick<TournamentRegistration, 'tenant_id' | 'tournament_id' | 'player_1_id'>; Update: Partial<TournamentRegistration>; Relationships: never[] };
+      matches: { Row: Match; Insert: Partial<Match> & Pick<Match, 'tenant_id' | 'tournament_id' | 'round' | 'match_number'>; Update: Partial<Match>; Relationships: never[] };
+      standings: { Row: Standing; Insert: Partial<Standing> & Pick<Standing, 'tenant_id' | 'tournament_id'>; Update: Partial<Standing>; Relationships: never[] };
+      products: { Row: Product; Insert: Partial<Product> & Pick<Product, 'tenant_id' | 'name' | 'slug' | 'price'>; Update: Partial<Product>; Relationships: never[] };
+      orders: { Row: Order; Insert: Partial<Order> & Pick<Order, 'tenant_id' | 'customer_id'>; Update: Partial<Order>; Relationships: never[] };
+      messages: { Row: Message; Insert: Partial<Message> & Pick<Message, 'tenant_id' | 'channel' | 'direction'>; Update: Partial<Message>; Relationships: never[] };
+      notifications: { Row: Notification; Insert: Partial<Notification> & Pick<Notification, 'tenant_id' | 'user_id' | 'type' | 'title' | 'body'>; Update: Partial<Notification>; Relationships: never[] };
+      broadcast_campaigns: { Row: BroadcastCampaign; Insert: Partial<BroadcastCampaign> & Pick<BroadcastCampaign, 'tenant_id' | 'name' | 'channel' | 'content'>; Update: Partial<BroadcastCampaign>; Relationships: never[] };
+      analytics_events: { Row: AnalyticsEvent; Insert: Partial<AnalyticsEvent> & Pick<AnalyticsEvent, 'tenant_id' | 'event_type'>; Update: Partial<AnalyticsEvent>; Relationships: never[] };
+      ai_interactions: { Row: AiInteraction; Insert: Partial<AiInteraction> & Pick<AiInteraction, 'agent' | 'model'>; Update: Partial<AiInteraction>; Relationships: never[] };
+      stripe_events: { Row: StripeEvent; Insert: Partial<StripeEvent> & Pick<StripeEvent, 'id' | 'type' | 'data'>; Update: Partial<StripeEvent>; Relationships: never[] };
     };
     Views: Record<string, {
       Row: Record<string, unknown>;
-      Relationships: [];
+      Relationships: never[];
     }>;
-    Functions: Record<string, {
-      Args: Record<string, unknown>;
-      Returns: unknown;
-    }>;
+    Functions: {
+      resolve_tenant: {
+        Args: { p_slug: string | null; p_domain: string | null };
+        Returns: TenantConfig;
+      };
+      [key: string]: {
+        Args: Record<string, unknown>;
+        Returns: unknown;
+      };
+    };
     Enums: {
       subscription_status: SubscriptionStatus;
       user_role: UserRole;

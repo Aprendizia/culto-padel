@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -26,6 +27,7 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { signOut } = useAuth();
 
   return (
     <>
@@ -40,7 +42,7 @@ export function Sidebar() {
       {/* Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-40 bg-cult-black/60 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -68,7 +70,7 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
@@ -90,7 +92,10 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="border-t border-cult-medium p-3">
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cult-light hover:bg-cult-dark hover:text-cult-cream transition-colors font-oswald uppercase tracking-wider">
+          <button
+            onClick={() => signOut()}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cult-light hover:bg-cult-dark hover:text-cult-cream transition-colors font-oswald uppercase tracking-wider"
+          >
             <LogOut className="h-5 w-5" />
             Cerrar sesión
           </button>

@@ -1,66 +1,62 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/server';
+import { headers } from 'next/headers';
 import { TournamentCard } from '@/components/tournaments/tournament-card';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useSupabase } from '@/components/providers/supabase-provider';
-import type { Tournament } from '@/types/database';
-import { Search } from 'lucide-react';
+import { Trophy, Search } from 'lucide-react';
+import { TournamentFilters } from './filters';
 
-const statusOptions = [
-  { value: '', label: 'Todos los estados' },
-  { value: 'registration', label: 'Inscripciones abiertas' },
-  { value: 'active', label: 'En curso' },
-  { value: 'completed', label: 'Finalizados' },
-];
+export default async function PublicTournamentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; format?: string }>;
+}) {
+  const params = await searchParams;
+  const headersList = await headers();
+  const tenantSlug = headersList.get('x-tenant-slug');
 
-const formatOptions = [
-  { value: '', label: 'Todos los formatos' },
-  { value: 'americano', label: 'Americano' },
-  { value: 'mexicano', label: 'Mexicano' },
-  { value: 'knockout', label: 'Eliminación directa' },
-  { value: 'round_robin', label: 'Round Robin' },
-];
+  const supabase = await createClient();
 
-export default function PublicTournamentsPage() {
-  const { supabase } = useSupabase();
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [formatFilter, setFormatFilter] = useState('');
+  // Resolve tenant
+  let tenantId: string | null = null;
+  if (tenantSlug) {
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('slug', tenantSlug)
+      .single();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tenantId = (tenant as any)?.id || null;
+  }
 
-  useEffect(() => {
-    const fetchTournaments = async () => {
-      let query = supabase
-        .from('tournaments')
-        .select('*')
-        .eq('is_public', true)
-        .order('start_date', { ascending: true });
+  // Build query
+  let query = supabase
+    .from('tournaments')
+    .select('*')
+    .eq('is_public', true)
+    .order('start_date', { ascending: true });
 
-      if (statusFilter) {
-        query = query.eq('status', statusFilter as any);
-      }
+  if (tenantId) {
+    query = query.eq('tenant_id', tenantId);
+  }
 
-      if (formatFilter) {
-        query = query.eq('format', formatFilter as any);
-      }
+  // Filter by status
+  if (params.status === 'registration') {
+    query = query.eq('status', 'registration');
+  } else if (params.status === 'active') {
+    query = query.eq('status', 'active');
+  } else if (params.status === 'completed') {
+    query = query.eq('status', 'completed');
+  } else {
+    // Default: show open + active
+    query = query.in('status', ['registration', 'active', 'completed']);
+  }
 
-      const { data } = await query;
-      setTournaments(data || []);
-      setLoading(false);
-    };
+  if (params.format) {
+    query = query.eq('format', params.format);
+  }
 
-    fetchTournaments();
-  }, [supabase, statusFilter, formatFilter]);
-
-  // Filter tournaments by search
-  const filteredTournaments = tournaments.filter((t) =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: tournaments } = await query;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const list = (tournaments || []) as any[];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -73,89 +69,38 @@ export default function PublicTournamentsPage() {
         </p>
       </div>
 
-      {/* Filter Chips */}
-      <div className="flex flex-wrap gap-2 mb-8 justify-center">
-        <Badge variant="default" className="cursor-pointer">
-          AMERICANO
-        </Badge>
-        <Badge variant="outline" className="cursor-pointer hover:bg-cult-gold hover:text-cult-black transition-colors">
-          MIXTO
-        </Badge>
-        <Badge variant="outline" className="cursor-pointer hover:bg-cult-gold hover:text-cult-black transition-colors">
-          ESTE MES
-        </Badge>
-        <Badge variant="outline" className="cursor-pointer hover:bg-cult-gold hover:text-cult-black transition-colors">
-          ZONA NORTE
-        </Badge>
-      </div>
-
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cult-light" />
-          <Input
-            placeholder="Buscar torneos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select
-          options={statusOptions}
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          placeholder="Estado"
-        />
-        <Select
-          options={formatOptions}
-          value={formatFilter}
-          onChange={(e) => setFormatFilter(e.target.value)}
-          placeholder="Formato"
-        />
+      <TournamentFilters currentStatus={params.status} currentFormat={params.format} />
+
+      {/* Count */}
+      <div className="mb-6">
+        <p className="text-sm text-cult-light font-oswald uppercase tracking-wider">
+          {list.length} torneo{list.length !== 1 ? 's' : ''} encontrado{list.length !== 1 ? 's' : ''}
+        </p>
       </div>
 
-      {/* Loading */}
-      {loading && (
+      {list.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cult-dark mb-4">
+            <Search className="h-8 w-8 text-cult-light" />
+          </div>
+          <h3 className="text-lg font-oswald font-bold text-cult-cream mb-2 uppercase">
+            No se encontraron torneos
+          </h3>
+          <p className="text-cult-light">
+            La orden aún no ha programado eventos con estos criterios
+          </p>
+        </div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 bg-cult-dark rounded-xl animate-pulse border border-cult-medium" />
+          {list.map((tournament) => (
+            <TournamentCard
+              key={tournament.id}
+              tournament={tournament}
+              href={`/t/${tournament.slug}`}
+            />
           ))}
         </div>
-      )}
-
-      {/* Results */}
-      {!loading && (
-        <>
-          <div className="mb-6">
-            <p className="text-sm text-cult-light font-oswald uppercase tracking-wider">
-              {filteredTournaments.length} torneo{filteredTournaments.length !== 1 ? 's' : ''} encontrado{filteredTournaments.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          {filteredTournaments.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cult-dark mb-4">
-                <Search className="h-8 w-8 text-cult-light" />
-              </div>
-              <h3 className="text-lg font-oswald font-bold text-cult-cream mb-2 uppercase">
-                No se encontraron torneos
-              </h3>
-              <p className="text-cult-light">
-                La orden aún no ha programado eventos con estos criterios
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTournaments.map((tournament) => (
-                <TournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  href={`/t/${tournament.slug}`}
-                />
-              ))}
-            </div>
-          )}
-        </>
       )}
     </div>
   );

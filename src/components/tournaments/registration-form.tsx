@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { toast } from '@/components/ui/toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Tournament } from '@/types/database';
 
@@ -16,6 +15,7 @@ interface RegistrationFormProps {
 export function RegistrationForm({ tournament, isLoggedIn }: RegistrationFormProps) {
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const isFull = tournament.max_teams ? tournament.current_registrations >= tournament.max_teams : false;
   const isOpen = tournament.status === 'registration';
@@ -27,6 +27,8 @@ export function RegistrationForm({ tournament, isLoggedIn }: RegistrationFormPro
     }
 
     setLoading(true);
+    setError(null);
+
     try {
       const res = await fetch(`/api/tournaments/${tournament.id}/register`, {
         method: 'POST',
@@ -59,10 +61,10 @@ export function RegistrationForm({ tournament, isLoggedIn }: RegistrationFormPro
         return;
       }
 
-      toast({ title: '¡Registrado!', description: 'Tu inscripción ha sido confirmada', variant: 'success' });
+      window.location.reload();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error desconocido';
-      toast({ title: 'Error', description: message, variant: 'error' });
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -71,8 +73,8 @@ export function RegistrationForm({ tournament, isLoggedIn }: RegistrationFormPro
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Inscripción</CardTitle>
-        <CardDescription>
+        <CardTitle className="font-oswald uppercase tracking-wider">Inscripción</CardTitle>
+        <CardDescription className="text-cult-light">
           {isOpen
             ? `${tournament.current_registrations}${tournament.max_teams ? ` / ${tournament.max_teams}` : ''} inscritos`
             : 'Las inscripciones no están abiertas'}
@@ -80,37 +82,42 @@ export function RegistrationForm({ tournament, isLoggedIn }: RegistrationFormPro
       </CardHeader>
       <CardContent className="space-y-4">
         {tournament.entry_fee > 0 && (
-          <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50">
-            <span className="text-sm text-zinc-400">Cuota de inscripción</span>
-            <span className="text-lg font-bold text-emerald-400">
+          <div className="flex items-center justify-between p-3 rounded-lg bg-cult-dark/50">
+            <span className="text-sm text-cult-light">Cuota de inscripción</span>
+            <span className="text-lg font-bold text-cult-gold font-jetbrains">
               {formatCurrency(tournament.entry_fee)}
             </span>
           </div>
         )}
 
         <Input
-          label="Nombre del equipo (opcional)"
-          placeholder="Los Invencibles"
+          placeholder="Nombre del equipo (opcional)"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
           disabled={!isOpen || isFull}
+          className="bg-cult-dark border-cult-medium text-cult-cream"
         />
+
+        {error && (
+          <p className="text-sm text-error">{error}</p>
+        )}
 
         <Button
           variant="primary"
           size="lg"
-          className="w-full"
-          loading={loading}
-          disabled={!isOpen || isFull}
+          className="w-full bg-cult-gold text-cult-black hover:bg-cult-gold-light font-oswald font-bold tracking-wide uppercase"
+          disabled={!isOpen || isFull || loading}
           onClick={handleRegister}
         >
-          {isFull
-            ? 'Torneo lleno'
-            : !isOpen
-              ? 'Inscripciones cerradas'
-              : tournament.entry_fee > 0
-                ? `Inscribirse — ${formatCurrency(tournament.entry_fee)}`
-                : 'Inscribirse gratis'}
+          {loading
+            ? 'Procesando...'
+            : isFull
+              ? 'Torneo lleno'
+              : !isOpen
+                ? 'Inscripciones cerradas'
+                : tournament.entry_fee > 0
+                  ? `Inscribirse — ${formatCurrency(tournament.entry_fee)}`
+                  : 'Inscribirse gratis'}
         </Button>
       </CardContent>
     </Card>

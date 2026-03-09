@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
     const isPublic = searchParams.get('public');
+    const tenantId = searchParams.get('tenant_id');
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
       .order('start_date', { ascending: false })
       .range(offset, offset + limit - 1);
 
+    if (tenantId) query = query.eq('tenant_id', tenantId);
     if (status) query = query.eq('status', status as TournamentStatus);
     if (isPublic === 'true') query = query.eq('is_public', true);
 
@@ -74,13 +76,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
+    // Check admin role — try tenant_memberships first, fallback to profiles
+    let tenantId: string | null = null;
+    let hasAdminRole = false;
+
+    const { data: membership } = await supabase
+      .from('tenant_memberships')
       .select('tenant_id, role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
-    if (!profile || !['tenant_owner', 'tenant_admin', 'super_admin'].includes(profile.role)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (membership) {
+      tenantId = (membership as any).tenant_id;
+      hasAdminRole = ['tenant_owner', 'tenant_admin', 'super_admin'].includes((membership as any).role);
+    } else {
+      // Fallback to profiles table
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id, role')
+        .eq('id', user.id)
+        .single();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (profile) {
+        tenantId = (profile as any).tenant_id;
+        hasAdminRole = ['tenant_owner', 'tenant_admin', 'super_admin'].includes((profile as any).role);
+      }
+    }
+
+    if (!tenantId || !hasAdminRole) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
     }
 
@@ -89,7 +114,7 @@ export async function POST(req: NextRequest) {
     const { data: tournament, error } = await supabase
       .from('tournaments')
       .insert({
-        tenant_id: profile.tenant_id,
+        tenant_id: tenantId,
         name: parsed.data.name,
         slug,
         description: parsed.data.description,

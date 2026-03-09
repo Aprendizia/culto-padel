@@ -35,7 +35,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
     else if (scoreTeamB > scoreTeamA) winnerSide = 'b';
 
     // Update match
-    const { data: match, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: match, error } = await (supabase as any)
       .from('matches')
       .update({
         score_team_a: scoreTeamA,
@@ -65,7 +66,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
             ? { team_a_registration_id: winnerRegId }
             : { team_b_registration_id: winnerRegId };
 
-        await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any)
           .from('matches')
           .update(updateField)
           .eq('id', match.next_match_id);

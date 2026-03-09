@@ -31,12 +31,12 @@ export default function TournamentsPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-zinc-100">Torneos</h1>
-          <div className="h-10 w-32 bg-zinc-800 rounded-lg animate-pulse" />
+          <h1 className="text-3xl font-oswald font-bold text-cult-cream uppercase tracking-wide">Torneos</h1>
+          <div className="h-10 w-32 bg-cult-dark rounded-lg animate-pulse" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 bg-zinc-800 rounded-xl animate-pulse" />
+            <div key={i} className="h-64 bg-cult-dark rounded-xl animate-pulse border border-cult-medium" />
           ))}
         </div>
       </div>
@@ -47,11 +47,11 @@ export default function TournamentsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-100">Torneos</h1>
-          <p className="text-zinc-400 mt-1">Gestiona todos tus torneos</p>
+          <h1 className="text-3xl font-oswald font-bold text-cult-cream uppercase tracking-wide">Torneos</h1>
+          <p className="text-cult-light mt-1">Gestiona todos tus torneos</p>
         </div>
         <Link href="/dashboard/tournaments/new">
-          <Button variant="primary">
+          <Button variant="primary" className="bg-cult-gold text-cult-black hover:bg-cult-gold-light font-oswald font-bold tracking-wide uppercase">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Torneo
           </Button>
@@ -60,13 +60,15 @@ export default function TournamentsPage() {
 
       {tournaments.length === 0 ? (
         <div className="text-center py-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 mb-4">
-            <Plus className="h-8 w-8 text-zinc-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cult-dark mb-4">
+            <Plus className="h-8 w-8 text-cult-light" />
           </div>
-          <h3 className="text-lg font-semibold text-zinc-200 mb-2">No hay torneos aún</h3>
-          <p className="text-zinc-500 mb-6">Crea tu primer torneo para comenzar</p>
+          <h3 className="text-lg font-oswald font-bold text-cult-cream mb-2 uppercase">No hay torneos aún</h3>
+          <p className="text-cult-light mb-6">Crea tu primer torneo para comenzar</p>
           <Link href="/dashboard/tournaments/new">
-            <Button variant="primary">Crear Torneo</Button>
+            <Button variant="primary" className="bg-cult-gold text-cult-black hover:bg-cult-gold-light font-oswald font-bold tracking-wide uppercase">
+              Crear Torneo
+            </Button>
           </Link>
         </div>
       ) : (
@@ -76,6 +78,7 @@ export default function TournamentsPage() {
               key={tournament.id}
               tournament={tournament}
               href={`/dashboard/tournaments/${tournament.id}`}
+              variant="admin"
             />
           ))}
         </div>

@@ -46,7 +46,8 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     const body = await req.json();
 
-    const { data: tournament, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: tournament, error } = await (supabase as any)
       .from('tournaments')
       .update(body)
       .eq('id', tournamentId)

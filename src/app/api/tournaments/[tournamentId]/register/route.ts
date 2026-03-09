@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -26,11 +26,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
 
     // Fetch tournament
-    const { data: tournament } = await supabase
+    const { data: tournamentData } = await supabase
       .from('tournaments')
       .select('*')
       .eq('id', tournamentId)
       .single();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tournament = tournamentData as any;
 
     if (!tournament) {
       return NextResponse.json({ error: 'Torneo no encontrado' }, { status: 404 });
@@ -57,24 +60,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Ya estás registrado en este torneo' }, { status: 409 });
     }
 
-    // Get profile for tenant_id
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('tenant_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 });
-    }
-
     // Create registration
     const status = tournament.entry_fee > 0 ? 'pending' : 'confirmed';
 
-    const { data: registration, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: registration, error } = await (supabase as any)
       .from('tournament_registrations')
       .insert({
-        tenant_id: profile.tenant_id,
+        tenant_id: tournament.tenant_id,
         tournament_id: tournamentId,
         player_1_id: user.id,
         player_2_id: parsed.data.player2Id,

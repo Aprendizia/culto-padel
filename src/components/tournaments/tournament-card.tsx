@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Users, DollarSign, Trophy, MapPin } from 'lucide-react';
+import { Calendar, Users, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -18,30 +18,34 @@ const formatLabels: Record<string, string> = {
   americano: 'Americano',
   mexicano: 'Mexicano',
   mixed_americano: 'Americano Mixto',
+  mixed_mexicano: 'Mexicano Mixto',
+  team_americano: 'Americano Equipos',
   knockout: 'Eliminación directa',
   double_elimination: 'Doble eliminación',
   round_robin: 'Round Robin',
   swiss: 'Suizo',
   league: 'Liga',
+  hybrid: 'Híbrido',
+  custom: 'Personalizado',
 };
 
 interface TournamentCardProps {
   tournament: Tournament;
   href?: string;
+  variant?: 'public' | 'admin';
 }
 
-export function TournamentCard({ tournament, href }: TournamentCardProps) {
+export function TournamentCard({ tournament, href, variant = 'public' }: TournamentCardProps) {
   const status = statusConfig[tournament.status];
   const Wrapper = href ? Link : 'div';
   
-  // Calculate spots left if max_teams is set
   const spotsLeft = tournament.max_teams 
     ? tournament.max_teams - tournament.current_registrations 
     : null;
 
   return (
     <Wrapper href={href || '#'} className="block group">
-      <Card className="transition-all hover:border-cult-gold hover:shadow-lg hover:shadow-cult-gold/10 group-hover:bg-cult-dark/80">
+      <Card className="transition-all hover:border-cult-gold hover:shadow-lg hover:shadow-cult-gold/10 group-hover:bg-cult-dark/80 h-full">
         {tournament.banner_url && (
           <div className="h-40 overflow-hidden rounded-t-xl">
             <img
@@ -53,19 +57,26 @@ export function TournamentCard({ tournament, href }: TournamentCardProps) {
         )}
         <CardContent className={tournament.banner_url ? 'pt-4' : 'pt-6'}>
           <div className="flex items-start justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="default" className="font-oswald uppercase tracking-wider text-xs">
                 {formatLabels[tournament.format] || tournament.format}
               </Badge>
-              {spotsLeft !== null && spotsLeft <= 4 && (
+              {spotsLeft !== null && spotsLeft <= 4 && spotsLeft > 0 && (
                 <Badge variant="error" className="text-xs font-oswald uppercase">
                   {spotsLeft} lugares
                 </Badge>
               )}
+              {spotsLeft !== null && spotsLeft <= 0 && (
+                <Badge variant="error" className="text-xs font-oswald uppercase">
+                  Lleno
+                </Badge>
+              )}
             </div>
-            <Badge variant={status.variant} className="font-oswald uppercase tracking-wider text-xs">
-              {status.label}
-            </Badge>
+            {variant === 'admin' && (
+              <Badge variant={status.variant} className="font-oswald uppercase tracking-wider text-xs">
+                {status.label}
+              </Badge>
+            )}
           </div>
 
           <h3 className="text-lg font-oswald font-bold text-cult-cream mb-3 uppercase tracking-wide group-hover:text-cult-gold transition-colors line-clamp-2">
@@ -86,14 +97,14 @@ export function TournamentCard({ tournament, href }: TournamentCardProps) {
             <div className="mb-4">
               <div className="flex justify-between text-xs text-cult-light mb-1 font-oswald uppercase tracking-wider">
                 <span>Inscritos</span>
-                <span>{tournament.current_registrations}/{tournament.max_teams}</span>
+                <span className="font-jetbrains">{tournament.current_registrations}/{tournament.max_teams}</span>
               </div>
               <div className="w-full bg-cult-medium rounded-full h-2">
                 <div 
                   className={`h-2 rounded-full transition-all ${
                     spotsLeft !== null && spotsLeft <= 4 ? 'bg-error' : 'bg-cult-gold'
                   }`}
-                  style={{ width: `${(tournament.current_registrations / tournament.max_teams) * 100}%` }}
+                  style={{ width: `${Math.min((tournament.current_registrations / tournament.max_teams) * 100, 100)}%` }}
                 />
               </div>
             </div>
@@ -102,7 +113,7 @@ export function TournamentCard({ tournament, href }: TournamentCardProps) {
           <div className="flex items-center justify-between pt-3 border-t border-cult-medium">
             <div className="flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 text-cult-light" />
-              <span className="text-cult-light text-sm">
+              <span className="text-cult-light text-sm font-jetbrains">
                 {tournament.current_registrations} inscritos
               </span>
             </div>

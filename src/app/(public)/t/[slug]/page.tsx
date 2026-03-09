@@ -1,78 +1,59 @@
-'use client';
-
-import { use, useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Users, DollarSign, Trophy, MapPin, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, DollarSign, Trophy, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RegistrationForm } from '@/components/tournaments/registration-form';
-import { BracketView } from '@/components/tournaments/bracket-view';
-import { Leaderboard } from '@/components/tournaments/leaderboard';
-import { useSupabase } from '@/components/providers/supabase-provider';
-import { useAuth } from '@/hooks/use-auth';
+import { createClient } from '@/lib/supabase/server';
+import { headers } from 'next/headers';
 import { formatDate, formatCurrency, formatDateTime } from '@/lib/utils';
-import type { Tournament, Match, TournamentRegistration } from '@/types/database';
 import Link from 'next/link';
+import { RegistrationButton } from './registration-button';
 
-type Props = { params: Promise<{ slug: string }> };
+const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'error' | 'info' | 'default' | 'outline' }> = {
+  draft: { label: 'Borrador', variant: 'outline' },
+  registration: { label: 'Inscripciones abiertas', variant: 'success' },
+  active: { label: 'En curso', variant: 'info' },
+  paused: { label: 'Pausado', variant: 'warning' },
+  completed: { label: 'Finalizado', variant: 'outline' },
+  canceled: { label: 'Cancelado', variant: 'error' },
+};
 
-export default function PublicTournamentPage({ params }: Props) {
-  const { slug } = use(params);
-  const { supabase } = useSupabase();
-  const { user } = useAuth();
-  const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [registrations, setRegistrations] = useState<TournamentRegistration[]>([]);
-  const [loading, setLoading] = useState(true);
+const formatLabels: Record<string, string> = {
+  americano: 'Americano',
+  mexicano: 'Mexicano',
+  mixed_americano: 'Americano Mixto',
+  knockout: 'Eliminación directa',
+  double_elimination: 'Doble eliminación',
+  round_robin: 'Round Robin',
+  swiss: 'Suizo',
+  league: 'Liga',
+};
 
-  useEffect(() => {
-    const fetchTournament = async () => {
-      const { data: tournamentData } = await supabase
-        .from('tournaments')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_public', true)
-        .single();
+export default async function PublicTournamentPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const headersList = await headers();
+  const tenantSlug = headersList.get('x-tenant-slug');
 
-      if (!tournamentData) {
-        setLoading(false);
-        return;
-      }
+  const supabase = await createClient();
 
-      const [matchesData, registrationsData] = await Promise.all([
-        supabase
-          .from('matches')
-          .select('*')
-          .eq('tournament_id', tournamentData.id)
-          .order('round')
-          .order('match_number'),
-        supabase
-          .from('tournament_registrations')
-          .select('*')
-          .eq('tournament_id', tournamentData.id)
-          .in('status', ['confirmed', 'paid'])
-          .order('registered_at'),
-      ]);
+  // Get user session
+  const { data: { user } } = await supabase.auth.getUser();
 
-      setTournament(tournamentData);
-      setMatches(matchesData.data || []);
-      setRegistrations(registrationsData.data || []);
-      setLoading(false);
-    };
+  // Build query
+  const { data: tournamentData } = await supabase
+    .from('tournaments')
+    .select(`
+      *,
+      tournament_categories(name, gender),
+      tournament_registrations(
+        id, team_name, seed, status, payment_status, registered_at
+      )
+    `)
+    .eq('slug', slug)
+    .eq('is_public', true)
+    .single();
 
-    fetchTournament();
-  }, [supabase, slug]);
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="space-y-6">
-          <div className="h-8 w-64 bg-cult-dark rounded animate-pulse" />
-          <div className="h-64 bg-cult-dark rounded-xl animate-pulse" />
-        </div>
-      </div>
-    );
-  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tournament = tournamentData as any;
 
   if (!tournament) {
     return (
@@ -85,45 +66,27 @@ export default function PublicTournamentPage({ params }: Props) {
             Este evento no existe o no está disponible públicamente
           </p>
           <Link href="/t" className="mt-4 inline-block">
-            <Button variant="outline">Ver todos los torneos</Button>
+            <Button variant="outline" className="font-oswald uppercase tracking-wide">Ver todos los torneos</Button>
           </Link>
         </div>
       </div>
     );
   }
 
-  const statusConfig = {
-    draft: { label: 'Borrador', variant: 'outline' as const },
-    registration: { label: 'Inscripciones abiertas', variant: 'success' as const },
-    active: { label: 'En curso', variant: 'info' as const },
-    paused: { label: 'Pausado', variant: 'warning' as const },
-    completed: { label: 'Finalizado', variant: 'outline' as const },
-    canceled: { label: 'Cancelado', variant: 'error' as const },
-  };
-
-  const formatLabels = {
-    americano: 'Americano',
-    mexicano: 'Mexicano',
-    mixed_americano: 'Americano Mixto',
-    knockout: 'Eliminación directa',
-    double_elimination: 'Doble eliminación',
-    round_robin: 'Round Robin',
-    swiss: 'Suizo',
-    league: 'Liga',
-  };
-
-  const registrationNames = new Map(
-    registrations.map((r) => [r.id, r.team_name || `Equipo ${r.id.slice(0, 8)}`])
+  const status = statusConfig[tournament.status] || statusConfig.draft;
+  const confirmedRegistrations = (tournament.tournament_registrations || []).filter(
+    (r: { status: string }) => ['confirmed', 'paid'].includes(r.status)
   );
-
-  const status = statusConfig[tournament.status];
+  const spotsLeft = tournament.max_teams
+    ? tournament.max_teams - tournament.current_registrations
+    : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link href="/t">
-          <Button variant="ghost" size="sm" className="text-cult-light hover:text-cult-gold">
+          <Button variant="ghost" size="sm" className="text-cult-light hover:text-cult-gold font-oswald uppercase tracking-wide">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Todos los torneos
           </Button>
@@ -142,19 +105,24 @@ export default function PublicTournamentPage({ params }: Props) {
             <div className="absolute inset-0 bg-gradient-to-t from-cult-black/80 via-cult-black/20 to-transparent" />
           </div>
         ) : (
-          <div className="h-64 md:h-80 bg-gradient-to-br from-cult-gold via-cult-gold-light to-cult-gold" />
+          <div className="h-64 md:h-80 bg-gradient-to-br from-cult-gold/20 via-cult-dark to-cult-black" />
         )}
         
-        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+        <div className="absolute bottom-0 left-0 right-0 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Badge variant={status.variant} className="bg-cult-gold/20 text-cult-gold border-cult-gold/30 font-oswald uppercase tracking-wider">
+            <Badge variant={status.variant} className="font-oswald uppercase tracking-wider">
               {status.label}
             </Badge>
             <Badge variant="outline" className="bg-cult-black/20 text-cult-cream border-cult-cream/30 font-oswald uppercase tracking-wider">
               {formatLabels[tournament.format as keyof typeof formatLabels] || tournament.format}
             </Badge>
+            {tournament.tournament_categories && (
+              <Badge variant="outline" className="bg-cult-black/20 text-cult-cream border-cult-cream/30 font-oswald uppercase tracking-wider">
+                {(tournament.tournament_categories as { name: string }).name}
+              </Badge>
+            )}
           </div>
-          <h1 className="text-3xl md:text-5xl font-oswald font-bold mb-2 uppercase tracking-wide">
+          <h1 className="text-3xl md:text-5xl font-oswald font-bold mb-2 uppercase tracking-wide text-cult-cream">
             {tournament.name}
           </h1>
           {tournament.description && (
@@ -182,6 +150,12 @@ export default function PublicTournamentPage({ params }: Props) {
                     <span>Inicia: {formatDateTime(tournament.start_date)}</span>
                   </div>
                 )}
+                {tournament.end_date && (
+                  <div className="flex items-center gap-2 text-cult-light">
+                    <Calendar className="h-4 w-4 text-cult-gold" />
+                    <span>Termina: {formatDateTime(tournament.end_date)}</span>
+                  </div>
+                )}
                 {tournament.registration_deadline && (
                   <div className="flex items-center gap-2 text-cult-light">
                     <Clock className="h-4 w-4 text-cult-gold" />
@@ -207,43 +181,23 @@ export default function PublicTournamentPage({ params }: Props) {
             </CardContent>
           </Card>
 
-          {/* Bracket / Matches */}
-          {tournament.status === 'active' && matches.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-oswald uppercase tracking-wider">
-                  {['knockout', 'double_elimination'].includes(tournament.format) ? 'Bracket' : 'Clasificación'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {['knockout', 'double_elimination'].includes(tournament.format) ? (
-                  <BracketView matches={matches} registrations={registrationNames} />
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-cult-light">Los resultados se actualizan conforme avanza el torneo</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           {/* Registrations List */}
-          {registrations.length > 0 && (
+          {confirmedRegistrations.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-oswald uppercase tracking-wider">
-                  Los Elegidos ({registrations.length})
+                  Los Elegidos ({confirmedRegistrations.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {registrations.map((reg, index) => (
+                  {confirmedRegistrations.map((reg: { id: string; team_name: string | null; seed: number | null }, index: number) => (
                     <div key={reg.id} className="flex items-center gap-3 p-3 rounded-lg bg-cult-dark/50">
                       <div className="h-8 w-8 rounded-full bg-cult-gold flex items-center justify-center text-cult-black text-sm font-bold font-jetbrains">
                         {index + 1}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-cult-cream">
+                        <p className="font-medium text-cult-cream font-oswald uppercase tracking-wide">
                           {reg.team_name || `Equipo ${reg.id.slice(0, 8)}`}
                         </p>
                         {reg.seed && (
@@ -259,32 +213,9 @@ export default function PublicTournamentPage({ params }: Props) {
               </CardContent>
             </Card>
           )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <RegistrationForm tournament={tournament} isLoggedIn={!!user} />
-
-          {/* Tournament Rules */}
-          {tournament.rules && Object.keys(tournament.rules).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-oswald uppercase tracking-wider">Reglas del Torneo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-cult-light space-y-2">
-                  <p>• Puntos por partido: {tournament.scoring_system?.points_per_match || 32}</p>
-                  <p>• Duración por ronda: {tournament.round_duration_minutes} minutos</p>
-                  {tournament.max_teams && (
-                    <p>• Máximo de equipos: {tournament.max_teams}</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Prize Pool */}
-          {tournament.prize_pool && Object.keys(tournament.prize_pool).length > 0 && (
+          {tournament.prize_pool && typeof tournament.prize_pool === 'object' && Object.keys(tournament.prize_pool).length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-oswald uppercase tracking-wider">
@@ -306,6 +237,60 @@ export default function PublicTournamentPage({ params }: Props) {
               </CardContent>
             </Card>
           )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Registration Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-oswald uppercase tracking-wider">Inscripción</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {tournament.entry_fee > 0 && (
+                <div className="flex items-center justify-between p-3 rounded-lg bg-cult-dark/50">
+                  <span className="text-sm text-cult-light">Cuota de inscripción</span>
+                  <span className="text-lg font-bold text-cult-gold font-jetbrains">
+                    {formatCurrency(tournament.entry_fee)}
+                  </span>
+                </div>
+              )}
+
+              {spotsLeft !== null && (
+                <div className="flex items-center justify-between p-3 rounded-lg bg-cult-dark/50">
+                  <span className="text-sm text-cult-light">Lugares disponibles</span>
+                  <span className={`text-lg font-bold font-jetbrains ${spotsLeft <= 4 ? 'text-error' : 'text-cult-gold'}`}>
+                    {spotsLeft > 0 ? spotsLeft : 'Lleno'}
+                  </span>
+                </div>
+              )}
+
+              <RegistrationButton
+                tournamentId={tournament.id}
+                tournamentSlug={tournament.slug}
+                entryFee={tournament.entry_fee}
+                isOpen={tournament.status === 'registration'}
+                isFull={spotsLeft !== null && spotsLeft <= 0}
+                isLoggedIn={!!user}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Rules */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-oswald uppercase tracking-wider">Reglas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-cult-light space-y-2">
+                <p>• Puntos por partido: <span className="font-jetbrains text-cult-cream">{tournament.scoring_system?.points_per_match || 32}</span></p>
+                <p>• Duración por ronda: <span className="font-jetbrains text-cult-cream">{tournament.round_duration_minutes || 25} min</span></p>
+                {tournament.max_teams && (
+                  <p>• Máximo de equipos: <span className="font-jetbrains text-cult-cream">{tournament.max_teams}</span></p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

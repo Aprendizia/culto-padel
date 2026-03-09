@@ -16,25 +16,31 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
 
     // Fetch tournament
-    const { data: tournament } = await supabase
+    const { data: tournamentData } = await supabase
       .from('tournaments')
       .select('*')
       .eq('id', tournamentId)
       .single();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tournament = tournamentData as any;
 
     if (!tournament) {
       return NextResponse.json({ error: 'Torneo no encontrado' }, { status: 404 });
     }
 
     // Fetch confirmed/paid registrations
-    const { data: registrations } = await supabase
+    const { data: regsData } = await supabase
       .from('tournament_registrations')
       .select('id, seed, team_name, player_1_id, player_2_id')
       .eq('tournament_id', tournamentId)
       .in('status', ['confirmed', 'paid'])
       .order('seed', { ascending: true, nullsFirst: false });
 
-    if (!registrations || registrations.length < 2) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const registrations = (regsData || []) as any[];
+
+    if (registrations.length < 2) {
       return NextResponse.json({ error: 'Se necesitan al menos 2 registros confirmados' }, { status: 400 });
     }
 
@@ -75,7 +81,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
     if (error) throw error;
 
     // Update tournament status
-    await supabase
+    await (supabase as any)
       .from('tournaments')
       .update({ status: 'active' })
       .eq('id', tournamentId);

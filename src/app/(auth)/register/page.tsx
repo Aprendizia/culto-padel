@@ -87,9 +87,9 @@ export default function RegisterPage() {
             Crear cuenta
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-zinc-400">
+        <p className="mt-4 text-center text-sm text-cult-light">
           ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="text-emerald-400 hover:underline">
+          <Link href="/login" className="text-cult-gold hover:underline">
             Inicia sesión
           </Link>
         </p>
